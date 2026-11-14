@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Token Radar — pre-token protocols, ranked by implied value</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<header class="mast">
+  <div class="mast-left">
+    <div class="kicker">TOKEN LAUNCH RADAR</div>
+    <h1>What would the token be worth?</h1>
+    <p class="lede">Every protocol below records no token yet. Each row is ranked by the
+    implied value its token would carry if the protocol's record stayed as it
+    is — derived from the snapshot's own figures, never from a list of names.
+    Click a row for its farm plan.</p>
+  </div>
+  <div class="mast-right" id="mastStats"></div>
+</header>
+
+<nav class="tabs" id="tabs">
+  <button data-view="board" class="on">Board</button>
+  <button data-view="live">Live tokens</button>
+  <button data-view="method">Method</button>
+</nav>
+
+<section id="view-board" class="view on">
+  <div class="controls">
+    <input id="q" type="search" placeholder="Search name or slug…" autocomplete="off">
+    <select id="cat" aria-label="Category"><option value="">All categories</option></select>
+    <select id="chain" aria-label="Chain"><option value="">All chains</option></select>
+    <label class="chk"><input id="watch" type="checkbox"> Watchlist only</label>
+    <select id="sort" aria-label="Sort by">
+      <option value="rank">Sort: rank</option>
+      <option value="implied">Sort: implied value</option>
+      <option value="tvl">Sort: TVL</option>
+      <option value="growth">Sort: 7-day growth</option>
+    </select>
+    <span id="count" class="count"></span>
+  </div>
+  <table id="board">
+    <thead><tr>
+      <th data-k="rank">#</th><th data-k="name">Protocol</th><th data-k="category">Category</th>
+      <th data-k="chains">Chains</th><th data-k="tvl" class="num">TVL</th>
+      <th data-k="growth" class="num">7d</th><th data-k="age" class="num">Age</th>
+      <th data-k="implied" class="num">Implied value</th><th></th>
+    </tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+  <p class="hint">Rows are pre-token protocols only. Live-token protocols sit under
+  the Live tokens tab, shown at the market's own value, never mixed into the ranking.</p>
+</section>
+
+<section id="view-live" class="view">
+  <p class="lede">Protocols whose token already trades, by market cap. They are the
+  comparables the model learns its multiples from — not board rows.</p>
+  <table id="liveTable">
+    <thead><tr><th>#</th><th>Protocol</th><th>Category</th><th>Chains</th>
+    <th class="num">TVL</th><th class="num">Market cap</th><th class="num">7d</th></tr></thead>
+    <tbody id="liveRows"></tbody>
+  </table>
+</section>
+
+<section id="view-method" class="view">
+  <h2>How the number is built</h2>
+  <p>Implied value = TVL × category multiple × growth × maturity × breadth.</p>
+  <ul>
+    <li><b>Category multiple.</b> The median market-cap-to-TVL ratio of the
+    protocols in the same category whose token already trades. Categories
+    with fewer than three live comparables use the global median. Clamped
+    to 0.05 – 3.00.</li>
+    <li><b>Growth.</b> The seven-day TVL change, clamped to −50%…+100%,
+    bends the value by 0.6 per point.</li>
+    <li><b>Maturity.</b> 0.65 at listing, rising to 1.00 at three years.
+    Unknown listing dates count as one year.</li>
+    <li><b>Breadth.</b> +3% per extra chain, capped at four extra chains.</li>
+  </ul>
+  <p>The same arithmetic scores every row. No protocol name is special-cased.
+  The snapshot is a frozen DefiLlama fetch; the board is this entry's claim
+  about worth, not a prediction that a token ships, or when.</p>
+  <h2>How to read a farm plan</h2>
+  <p>Each row carries six steps: a fresh wallet, one core position sized to
+  the protocol's TVL, a weekly qualifying action, a hold window, a safe
+  claim, and a log. Costs and times are estimates from the protocol's own
+  record. Never pay to claim; claim only through links the protocol itself
+  publishes.</p>
+</section>
+
+<aside id="detail" class="detail" hidden>
+  <button id="closeDetail" aria-label="Close detail">×</button>
+  <div id="detailBody"></div>
+</aside>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,92 @@
+/* Token Radar — dark radar-room palette. No network, no framework. */
+:root {
+  --bg: #0b1020;
+  --panel: #121a33;
+  --panel2: #0e1528;
+  --line: #24304f;
+  --ink: #e8edf7;
+  --dim: #9aa8c4;
+  --faint: #6b7a99;
+  --accent: #57e6a9;
+  --accent2: #ffb454;
+  --danger: #ff6b7a;
+  --radius: 10px;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+.mast {
+  display: flex; flex-wrap: wrap; gap: 24px; justify-content: space-between;
+  padding: 28px 28px 18px; border-bottom: 1px solid var(--line);
+  background: radial-gradient(900px 220px at 20% -40px, #1b2c55 0%, transparent 60%);
+}
+.kicker { letter-spacing: .22em; font-size: 12px; color: var(--accent); font-weight: 700; }
+h1 { margin: 6px 0 8px; font-size: 30px; line-height: 1.15; letter-spacing: -.01em; }
+.lede { max-width: 720px; color: var(--dim); margin: 0; }
+.mast-right { display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; }
+.stat {
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 10px 14px; min-width: 110px;
+}
+.stat b { display: block; font-size: 22px; color: var(--accent); }
+.stat span { font-size: 12px; color: var(--dim); }
+.tabs { display: flex; gap: 6px; padding: 14px 28px 0; }
+.tabs button {
+  background: none; border: 1px solid var(--line); color: var(--dim);
+  padding: 8px 16px; border-radius: 999px; cursor: pointer; font: inherit;
+}
+.tabs button.on { background: var(--accent); border-color: var(--accent); color: #06130c; font-weight: 700; }
+.view { display: none; padding: 18px 28px 40px; }
+.view.on { display: block; }
+.view h2 { margin: 18px 0 6px; font-size: 20px; }
+.view ul, .view p { max-width: 780px; color: var(--dim); }
+.view ul b, .view p b { color: var(--ink); }
+.controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+.controls input[type="search"], .controls select {
+  background: var(--panel); color: var(--ink); border: 1px solid var(--line);
+  border-radius: 8px; padding: 8px 10px; font: inherit;
+}
+.controls input[type="search"] { min-width: 220px; }
+.chk { color: var(--dim); font-size: 14px; display: flex; gap: 6px; align-items: center; }
+.count { color: var(--faint); font-size: 13px; margin-left: auto; }
+table { width: 100%; border-collapse: collapse; background: var(--panel); border-radius: var(--radius); overflow: hidden; }
+th, td { padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); cursor: pointer; white-space: nowrap; }
+th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+tbody tr { cursor: pointer; }
+tbody tr:hover { background: #182243; }
+tbody tr.sel { background: #1a2c52; }
+td .sub { display: block; color: var(--faint); font-size: 12px; }
+.up { color: var(--accent); }
+.down { color: var(--danger); }
+.tag {
+  display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 999px;
+  border: 1px solid var(--line); color: var(--dim);
+}
+.tag.watch { border-color: var(--accent2); color: var(--accent2); }
+.hint { color: var(--faint); font-size: 13px; max-width: 780px; }
+.detail {
+  position: fixed; top: 0; right: 0; bottom: 0; width: min(520px, 94vw);
+  background: var(--panel2); border-left: 1px solid var(--line);
+  overflow-y: auto; padding: 22px 24px 40px; box-shadow: -18px 0 40px rgba(0,0,0,.45); z-index: 5;
+}
+.detail h2 { margin: 4px 0 2px; font-size: 24px; }
+.detail .meta { color: var(--dim); font-size: 14px; }
+.detail h3 { margin: 20px 0 6px; font-size: 15px; color: var(--accent); letter-spacing: .06em; text-transform: uppercase; }
+.detail ol { padding-left: 20px; margin: 6px 0; }
+.detail li { margin-bottom: 8px; }
+.detail li b { color: var(--accent2); }
+.detail table { background: none; }
+.detail th, .detail td { border-bottom: 1px solid var(--line); }
+#closeDetail {
+  float: right; background: none; border: 1px solid var(--line); color: var(--ink);
+  width: 34px; height: 34px; border-radius: 50%; font-size: 20px; cursor: pointer;
+}
+.big { font-size: 26px; font-weight: 800; color: var(--accent); }
+@media (max-width: 760px) {
+  .mast, .tabs, .view { padding-left: 14px; padding-right: 14px; }
+  h1 { font-size: 24px; }
+  th:nth-child(4), td:nth-child(4), th:nth-child(7), td:nth-child(7) { display: none; }
+}
