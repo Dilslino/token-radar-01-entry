@@ -8,7 +8,7 @@
 </head>
 <body>
 <header class="mast">
-  <div class="mast-left">
+  <div class="mast-main">
     <div class="kicker">TOKEN LAUNCH RADAR</div>
     <h1>What would the token be worth?</h1>
     <p class="lede">Every protocol below records no token yet. Each row is ranked by the
@@ -16,7 +16,7 @@
     is — derived from the snapshot's own figures, never from a list of names.
     Click a row for its farm plan.</p>
   </div>
-  <div class="mast-right" id="mastStats"></div>
+  <div class="mast-stats" id="mastStats"></div>
 </header>
 
 <nav class="tabs" id="tabs">
@@ -41,10 +41,10 @@
   </div>
   <table id="board">
     <thead><tr>
-      <th data-k="rank">#</th><th data-k="name">Protocol</th><th data-k="category">Category</th>
-      <th data-k="chains">Chains</th><th data-k="tvl" class="num">TVL</th>
-      <th data-k="growth" class="num">7d</th><th data-k="age" class="num">Age</th>
-      <th data-k="implied" class="num">Implied value</th><th></th>
+      <th>#</th><th>Protocol</th><th>Category</th>
+      <th>Chains</th><th class="num">TVL</th>
+      <th class="num">7d</th><th class="num">Age</th>
+      <th class="num">Implied value</th><th></th>
     </tr></thead>
     <tbody id="rows"></tbody>
   </table>

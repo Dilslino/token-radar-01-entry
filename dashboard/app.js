@@ -18,14 +18,14 @@ const ageText = (d) => (d === null || d === undefined ? '—' : d < 365 ? d + 'd
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 // ---- masthead stats -------------------------------------------------------
-$('mastStats').innerHTML =
-  stat(D.board_size, 'rows ranked') +
-  stat(D.watchlist_size, 'watchlist') +
-  stat(D.live_size, 'live tokens') +
-  stat(D.as_of, 'snapshot date');
-function stat(b, label) {
-  return '<div class="stat"><b>' + esc(b) + '</b><span>' + esc(label) + '</span></div>';
+function statCard(value, label) {
+  return '<div class="stat"><b>' + esc(value) + '</b><span>' + esc(label) + '</span></div>';
 }
+$('mastStats').innerHTML =
+  statCard(D.board_size, 'rows ranked') +
+  statCard(D.watchlist_size, 'watchlist') +
+  statCard(D.live_size, 'live tokens') +
+  statCard(D.as_of, 'snapshot date');
 
 // ---- tabs -----------------------------------------------------------------
 $('tabs').addEventListener('click', (e) => {
@@ -45,35 +45,35 @@ for (const c of cats) $('cat').append(new Option(c, c));
 for (const c of chains) $('chain').append(new Option(c, c));
 
 let sortKey = 'rank';
-$('sort').addEventListener('change', (e) => { sortKey = e.target.value; render(); });
-['q', 'cat', 'chain', 'watch'].forEach((id) => $(id).addEventListener('input', render));
+$('sort').addEventListener('change', (e) => { sortKey = e.target.value; renderBoard(); });
+['q', 'cat', 'chain', 'watch'].forEach((id) => $(id).addEventListener('input', renderBoard));
 
-function filtered() {
+function visibleRows() {
   const q = $('q').value.trim().toLowerCase();
   const cat = $('cat').value;
   const chain = $('chain').value;
   const watch = $('watch').checked;
-  let rows = D.rows.filter((r) =>
+  const rows = D.rows.filter((r) =>
     (!q || r.name.toLowerCase().includes(q) || r.slug.includes(q)) &&
     (!cat || r.category === cat) &&
     (!chain || r.chains.includes(chain)) &&
     (!watch || watchSet.has(r.slug)));
-  const key = {
+  const by = {
     rank: (a, b) => a.rank - b.rank,
     implied: (a, b) => b.implied_value_usd - a.implied_value_usd,
     tvl: (a, b) => b.tvl_usd - a.tvl_usd,
     growth: (a, b) => (b.change_7d ?? -999) - (a.change_7d ?? -999),
   }[sortKey];
-  return rows.sort(key);
+  return rows.sort(by);
 }
 
 function rowHtml(r) {
   const g = r.change_7d;
   const cls = g === null ? '' : g >= 0 ? 'up' : 'down';
-  const watch = watchSet.has(r.slug) ? ' <span class="tag watch">watchlist</span>' : '';
+  const tag = watchSet.has(r.slug) ? ' <span class="tag watch">watchlist</span>' : '';
   return '<tr data-slug="' + esc(r.slug) + '">' +
     '<td>' + r.rank + '</td>' +
-    '<td><b>' + esc(r.name) + '</b><span class="sub">' + esc(r.slug) + '</span>' + watch + '</td>' +
+    '<td><b>' + esc(r.name) + '</b><span class="sub">' + esc(r.slug) + '</span>' + tag + '</td>' +
     '<td>' + esc(r.category || '—') + '</td>' +
     '<td>' + esc(r.chains.join(', ') || '—') + '</td>' +
     '<td class="num">' + money(r.tvl_usd) + '</td>' +
@@ -83,14 +83,14 @@ function rowHtml(r) {
     '<td>›</td></tr>';
 }
 
-function render() {
-  const rows = filtered();
+function renderBoard() {
+  const rows = visibleRows();
   $('rows').innerHTML = rows.map(rowHtml).join('');
   $('count').textContent = rows.length + ' of ' + D.rows.length + ' rows';
 }
 
 // ---- farm plans, generated in the page ------------------------------------
-function capitalFor(tvl) {
+function stakeFor(tvl) {
   if (tvl >= 5e9) return 250;
   if (tvl >= 1e9) return 150;
   if (tvl >= 1e8) return 100;
@@ -102,33 +102,33 @@ function holdFor(age) {
   if (age < 365) return 45;
   return 30;
 }
-function actionFor(r, capital) {
+function coreAction(r, stake) {
   const c = (r.category || '').toLowerCase();
   const chain = r.chains[0] || 'its main chain';
   const n = r.name;
-  if (c.includes('lend') || c.includes('cdp') || c.includes('collateral')) return 'Lend $' + capital + ' of USDC on ' + n + ' (' + chain + ') and leave the loan open.';
-  if (c.includes('dex')) return 'Add $' + capital + ' of liquidity to ' + n + "'s deepest pool on " + chain + ' and leave it in.';
-  if (c.includes('yield') || c.includes('leveraged farm')) return 'Put $' + capital + " into " + n + "'s main yield position on " + chain + ' and keep it running.';
-  if (c.includes('bridge')) return 'Bridge $' + capital + ' of USDC onto ' + chain + ' through ' + n + ', then use the bridged funds inside its app.';
-  if (c.includes('staking') || c.includes('restak')) return 'Stake $' + capital + ' of the chain asset through ' + n + ' on ' + chain + ' and hold the receipt token.';
-  if (c.includes('perpetual') || c.includes('derivative')) return 'Post $' + capital + ' of USDC as margin on ' + n + ' and open one small hedged trade.';
-  if (c.includes('prediction')) return 'Fund $' + capital + ' on ' + n + ' and take one market position.';
-  if (c.includes('curator') || c.includes('allocator') || c.includes('vault')) return 'Deposit $' + capital + ' into a ' + n + ' vault on ' + chain + ' and hold the shares.';
-  if (c.includes('stable')) return 'Mint or deposit $' + capital + ' of the stable asset through ' + n + ' on ' + chain + '.';
-  if (c.includes('rwa')) return 'Mint $' + capital + ' of the yield-bearing asset ' + n + ' issues on ' + chain + ' and hold it.';
-  if (c.includes('insurance')) return 'Buy $' + capital + ' of cover from ' + n + ' on ' + chain + ' and keep the policy live.';
-  if (c.includes('nft') || c.includes('gaming')) return 'Use $' + capital + ' inside ' + n + ' on ' + chain + ': play, mint or trade through its own app, not a marketplace.';
-  return 'Deposit $' + capital + ' of USDC into ' + n + ' on ' + chain + ' and keep the position open.';
+  if (c.includes('lend') || c.includes('cdp') || c.includes('collateral')) return 'Lend $' + stake + ' of USDC on ' + n + ' (' + chain + ') and leave the loan open.';
+  if (c.includes('dex')) return 'Add $' + stake + " of liquidity to " + n + "'s deepest pool on " + chain + ' and leave it in.';
+  if (c.includes('yield') || c.includes('leveraged farm')) return 'Put $' + stake + " into " + n + "'s main yield position on " + chain + ' and keep it running.';
+  if (c.includes('bridge')) return 'Bridge $' + stake + ' of USDC onto ' + chain + ' through ' + n + ', then use the bridged funds inside its app.';
+  if (c.includes('staking') || c.includes('restak')) return 'Stake $' + stake + ' of the chain asset through ' + n + ' on ' + chain + ' and hold the receipt token.';
+  if (c.includes('perpetual') || c.includes('derivative')) return 'Post $' + stake + ' of USDC as margin on ' + n + ' and open one small hedged trade.';
+  if (c.includes('prediction')) return 'Fund $' + stake + ' on ' + n + ' and take one market position.';
+  if (c.includes('curator') || c.includes('allocator') || c.includes('vault')) return 'Deposit $' + stake + ' into a ' + n + ' vault on ' + chain + ' and hold the shares.';
+  if (c.includes('stable')) return 'Mint or deposit $' + stake + ' of the stable asset through ' + n + ' on ' + chain + '.';
+  if (c.includes('rwa')) return 'Mint $' + stake + ' of the yield-bearing asset ' + n + ' issues on ' + chain + ' and hold it.';
+  if (c.includes('insurance')) return 'Buy $' + stake + ' of cover from ' + n + ' on ' + chain + ' and keep the policy live.';
+  if (c.includes('nft') || c.includes('gaming')) return 'Use $' + stake + ' inside ' + n + ' on ' + chain + ': play, mint or trade through its own app, not a marketplace.';
+  return 'Deposit $' + stake + ' of USDC into ' + n + ' on ' + chain + ' and keep the position open.';
 }
-function farmSteps(r) {
-  const capital = capitalFor(r.tvl_usd);
+function farmPlanHtml(r) {
+  const stake = stakeFor(r.tvl_usd);
   const hold = holdFor(r.age_days);
-  const gas = capital >= 150 ? 8 : 4;
+  const gas = stake >= 150 ? 8 : 4;
   const steps = [
     ['Open a fresh wallet that holds only the funds you plan to farm, and keep its seed phrase offline.', 'under $3 of gas for the first transaction', '5 minutes'],
-    [actionFor(r, capital), '$' + capital + ' of capital and about $' + gas + ' of gas', '15 minutes to set up'],
+    [coreAction(r, stake), '$' + stake + ' of capital and about $' + gas + ' of gas', '15 minutes to set up'],
     ['Do one qualifying action every week — a deposit, a borrow, a swap or a vote — so the wallet reads as active.', 'about $2 of gas a week', '10 minutes a week'],
-    ['Hold the position for at least ' + hold + ' days, so the activity lands in more than one snapshot.', 'the $' + capital + ' stays in the position', hold + ' days'],
+    ['Hold the position for at least ' + hold + ' days, so the activity lands in more than one snapshot.', 'the $' + stake + ' stays in the position', hold + ' days'],
     ["Before withdrawing, open the protocol's own points or rewards page and claim only through the link it publishes.", 'no fee to check, and never pay to claim', '10 minutes'],
     ['Log the wallet, the dates and every transaction, so you can repeat the position or unwind it cleanly.', 'nothing but the log', '5 minutes'],
   ];
@@ -154,7 +154,7 @@ function openDetail(slug) {
     '<tr><td>Breadth (' + r.chains.length + ' chain' + (r.chains.length === 1 ? '' : 's') + ')</td><td class="num">×' + r.breadth_multiplier.toFixed(4) + '</td></tr>' +
     '<tr><td>Listed</td><td class="num">' + esc(r.listed_at || 'unknown') + '</td></tr>' +
     '</tbody></table>' +
-    '<h3>Farm plan</h3><ol>' + farmSteps(r) + '</ol>' +
+    '<h3>Farm plan</h3><ol>' + farmPlanHtml(r) + '</ol>' +
     '<p class="meta">Implied value is this entry\u2019s claim about worth, not a prediction that a token ships, or when. The protocol records no token in the snapshot.</p>';
   $('detail').hidden = false;
 }
@@ -182,8 +182,8 @@ function applyDeepLink() {
   const cat = h.get('category') || s.get('category');
   if (cat) { $('cat').value = cat; }
   if (h.get('watch') === '1' || s.get('watch') === '1') { $('watch').checked = true; }
-  render();
+  renderBoard();
   if (detail) openDetail(detail);
 }
-render();
+renderBoard();
 applyDeepLink();
